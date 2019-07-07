@@ -1,6 +1,12 @@
 from PIL import Image, ImageDraw, ImageFont
 from inky import InkyWHAT
 import datetime
+import pycarwings2
+import time
+from ConfigParser import SafeConfigParser
+import logging
+import sys
+import math
 
 # setup inky for display
 inky_display = InkyWHAT("red")
@@ -16,16 +22,42 @@ txt = Image.new('RGBA', base.size, (255,255,255,0))
 fnt = ImageFont.truetype('fonts/roboto/Roboto-Regular.ttf', 40)
 fnt_small = ImageFont.truetype('fonts/roboto/Roboto-Regular.ttf', 20)
 
-
 # get a drawing context
 d = ImageDraw.Draw(txt)
 
-# Temp vars until I can hook up the Nissan API
-# I need to get a leaf first
-charge_percent = 1
-charging = 1
-charge_eta = '3h 35m'
-distance = '1 Miles'
+logging.basicConfig(stream=sys.stdout, level=logging.ERROR)
+
+parser = SafeConfigParser()
+candidates = [ 'config.ini', 'my_config.ini' ]
+found = parser.read(candidates)
+
+username = parser.get('get-leaf-info', 'username')
+password = parser.get('get-leaf-info', 'password')
+
+s = pycarwings2.Session(username, password , "NE")
+l = s.get_leaf()
+
+leaf_info = l.get_latest_battery_status()
+
+charge_percent = float(leaf_info.state_of_charge)
+
+if leaf_info.charging_status == 'NOT_CHARGING':
+	charging = 0
+else:
+	charging = 1
+
+#How long to charge to 100%
+charge_time_hours = leaf_info.answer["BatteryStatusRecords"]["TimeRequiredToFull200_6kW"]["HourRequiredToFull"]
+charge_time_mins = leaf_info.answer["BatteryStatusRecords"]["TimeRequiredToFull200_6kW"]["MinutesRequiredToFull"]
+if len(charge_time_mins) == 1:
+	charge_time_mins = "0" + charge_time_mins
+total_charge_time = charge_time_hours + ":" + charge_time_mins
+
+#How much range is left?
+range_in_km = float(leaf_info.answer["BatteryStatusRecords"]["CruisingRangeAcOn"]) / 1000
+range_in_miles = range_in_km / 1.609
+range_in_miles = math.ceil(range_in_miles)
+range_in_miles = str(range_in_miles) + ' Miles'
 
 #Which battery image do we want?
 if charge_percent < 10:
@@ -46,22 +78,23 @@ d.text((200,30), str(charge_percent) + '%', font=fnt, fill=(0,0,0,255))
 
 #Do we want the charging image?
 if charging == 1:
-    clock = Image.open('img/clock.png').convert('RGBA')
-    charge = Image.open('img/charging.png').convert('RGBA')
-    charge = Image.alpha_composite(clock, charge)
+	charge = Image.open('img/charging.png').convert('RGBA')
 
-    # add charge eta to text layer
-    d.text((80,125), str(charge_eta), font=fnt, fill=(0,0,0,255))
+# add charge eta to text layer
+d.text((80,125), str(total_charge_time), font=fnt, fill=(0,0,0,255))
 
 #Add the current range
-d.text((80,200), str(distance), font=fnt, fill=(0,0,0,255))
+d.text((80,200), str(range_in_miles), font=fnt, fill=(0,0,0,255))
 
 #Add the updated text
-currentDT = datetime.datetime.now()
-d.text((255,275), 'Updated: '+ str(currentDT.hour) + ':' + str(currentDT.minute), font=fnt_small, fill=(0,0,0,255))
+d.text((10,275), 'Updated: '+ leaf_info.answer["BatteryStatusRecords"]["NotificationDateAndTime"], font=fnt_small, fill=(255,0,0,255))
 
 #Base and battery image merge
 out = Image.alpha_composite(base, battery)
+
+#Merge the clock layer
+clock = Image.open('img/clock.png').convert('RGBA')
+out = Image.alpha_composite(out, clock)
 
 #Merge the charging layer
 if charging == 1:
