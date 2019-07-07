@@ -1,5 +1,6 @@
 # Inky Leaf
 ![Image of Inky-Leaf](https://raw.githubusercontent.com/thickey256/Inky-Leaf/master/inky-leaf.png)
+
 This project uses an eInk display ([an Inky wHAT Red](https://shop.pimoroni.com/products/inky-what)) to display the current status of a Nissan Leaf.
 
 ## Video of Inky-Leaf working
