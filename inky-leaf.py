@@ -55,11 +55,14 @@ else:
 	charging = 1
 
 #How long to charge to 100%
-charge_time_hours = leaf_info.answer["BatteryStatusRecords"]["TimeRequiredToFull200_6kW"]["HourRequiredToFull"]
-charge_time_mins = leaf_info.answer["BatteryStatusRecords"]["TimeRequiredToFull200_6kW"]["MinutesRequiredToFull"]
-if len(charge_time_mins) == 1:
-	charge_time_mins = "0" + charge_time_mins
-total_charge_time = charge_time_hours + "h " + charge_time_mins + "m"
+if leaf_info.time_to_full_l2_6kw != None:
+	charge_time_hours = leaf_info.answer["BatteryStatusRecords"]["TimeRequiredToFull200_6kW"]["HourRequiredToFull"]
+	charge_time_mins = leaf_info.answer["BatteryStatusRecords"]["TimeRequiredToFull200_6kW"]["MinutesRequiredToFull"]
+	if len(charge_time_mins) == 1:
+		charge_time_mins = "0" + charge_time_mins
+	total_charge_time = charge_time_hours + "h " + charge_time_mins + "m"
+else:
+	total_charge_time = "0h 0m"
 
 #How much range is left?
 range_in_km = float(leaf_info.answer["BatteryStatusRecords"]["CruisingRangeAcOn"]) / 1000
