@@ -13,14 +13,14 @@ inky_display = InkyWHAT("red")
 inky_display.set_border(inky_display.RED)
 
 # get an image
-base = Image.open('img/base.png').convert('RGBA')
+base = Image.open('~/inky-leaf/img/base.png').convert('RGBA')
 
 # make a blank image for the text, initialized to transparent text color
 txt = Image.new('RGBA', base.size, (255,255,255,0))
 
 # get a font
-fnt = ImageFont.truetype('fonts/roboto/Roboto-Regular.ttf', 40)
-fnt_small = ImageFont.truetype('fonts/roboto/Roboto-Regular.ttf', 20)
+fnt = ImageFont.truetype('~/inky-leaf/fonts/roboto/Roboto-Regular.ttf', 40)
+fnt_small = ImageFont.truetype('~/inky-leaf/fonts/roboto/Roboto-Regular.ttf', 20)
 
 # get a drawing context
 d = ImageDraw.Draw(txt)
@@ -71,14 +71,14 @@ elif charge_percent < 75:
 else:
     battery_img = 'battery_4.png';
 
-battery = Image.open('img/'+battery_img).convert('RGBA')
+battery = Image.open('~/inky-leaf/img/'+battery_img).convert('RGBA')
 
 # add battery % to text layer
 d.text((200,30), str(charge_percent) + '%', font=fnt, fill=(0,0,0,255))
 
 #Do we want the charging image?
 if charging == 1:
-	charge = Image.open('img/charging.png').convert('RGBA')
+	charge = Image.open('~/inky-leaf/img/charging.png').convert('RGBA')
 
 # add charge eta to text layer
 d.text((80,125), str(total_charge_time), font=fnt, fill=(0,0,0,255))
@@ -93,7 +93,7 @@ d.text((10,275), 'Updated: '+ leaf_info.answer["BatteryStatusRecords"]["Notifica
 out = Image.alpha_composite(base, battery)
 
 #Merge the clock layer
-clock = Image.open('img/clock.png').convert('RGBA')
+clock = Image.open('~/inky-leaf/img/clock.png').convert('RGBA')
 out = Image.alpha_composite(out, clock)
 
 #Merge the charging layer
